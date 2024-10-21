@@ -53,14 +53,15 @@ This file contains the particle output information from CORSIKA. It is a simple 
 
 Note that you will need to make a conversion from the CORSIKA coordinate system to the Geant4 coordinate system to create this input file, see the section "Coordinate systems".
 
-Note that if you use the *corsikaread* or *corsikaread_thin* Fortran scripts provided with the CORSIKA code, to convert the CORSIKA particle output from binary to human-readable format, you should increase the precision with which it converts the arrival time values. Change line 122
+Note that if you use the *corsikaread* or *corsikaread_thin* Fortran scripts provided with the CORSIKA code, to convert the CORSIKA particle output from binary to human-readable format, you should increase the precision with which it converts the arrival time values. Change the line (for *corsikaread_thin*, this is line 122)
 ```
 WRITE(8,‘(1P,E16.8,7E13.5)’) (PDATA(II+IL),II=0,7)
 ```
-to the following:
+to the following
 ```
 WRITE(8,‘(1P,E16.8,7E16.8)’) (PDATA(II+IL),II=0,7)
 ```
+before compiling the script.
 
 #### 2. The name for the output file to be created (without file extension)
 The program will create 5 output files, all using this name. Assuming the name is "*example*", these would be:
