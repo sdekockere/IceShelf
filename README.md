@@ -51,7 +51,7 @@ This file contains the particle output information from CORSIKA. It is a simple 
 * Time of arrival of the particle at the ice surface, in ns
 * Thinning weight of the particle (1 in case no thinning was used during the CORSIKA simulation)
 
-Note that you will need to make a conversion from the CORSIKA coordinate system to the Geant4 coordinate system to create this input file, see the section "Coordinate systems".
+Note that you will need to make a conversion from the CORSIKA coordinate system to the Geant4 coordinate system to create this input file, see the section "Coordinate systems". Important to keep in mind is that the conversion depends on the depth of the simulated volume, so in case the depth is changed, don't forget to take the change into account for the coordinate conversion!
 
 Note that if you use the *corsikaread* or *corsikaread_thin* Fortran scripts provided with the CORSIKA code, to convert the CORSIKA particle output from binary to human-readable format, you should increase the precision with which it converts the arrival time values. Change the line (for *corsikaread_thin*, this is line 122)
 ```
@@ -366,6 +366,8 @@ again omitting the spatial translation for the z-component in case of momentum a
 <img src="./images/axis_system.png" width="700" /><br>
 
 Note: the reason that the x-axis of the Geant4 coordinate system is rotated over the azimuth angle w.r.t the x-axis of the CORSIKA coordinate system, is to make sure that the coordinate transformation from the Geant4 coordinate system to the tilted Geant4 coordinate system where the y-axis is aligned with the shower axis is done correctly, for arbitrary values of the azimuth angle. This is used e.g. during the construction of the *EnergyDensityProfile_[INPUT_PARTICLE_TYPE]* and *RadialEnergyProfile_[INPUT_PARTICLE_TYPE]* histograms.
+
+Note: keep in mind that the coordinate conversions depend on the depth of the simulated volume, so in case the depth is changed, don't forget to take the change into account for the coordinate conversions!
 
 ### Time
 The **particle output** from a CORSIKA + CoREAS simulation will give time relative to the entrance of the cosmic ray into the atmosphere (due to the "CHERENKOV" option automatically enabled by CoREAS). In other words, for the time values given in the particle output file, t = 0 refers to the moment the cosmic ray entered the atmosphere.
