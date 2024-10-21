@@ -5,14 +5,14 @@ The code exists of two main components:
 1. The Geant4 code
 2. The ray tracing code
 
-The Geant4 code files can be recognized by the word "*IceShelf*" at the start. Additionally, it also includes the file "*SimplePhysicsList.cpp*", which defines the list of physical processes that are being simulated during the propagation of the particles. Finally, it also includes the file "*IceDensityModels.hh*", in which the density model of the ice is defined. The endpoint formalism is implemented in the file "IceShelfSteppingAction.cpp", which determines all the actions that need to be taken for each step of each particle during the simulation. For more information on how Geant4 works, please refer to the manual of Geant4.
+The Geant4 code files can be recognized by the word "*IceShelf*" at the start. Additionally, it also includes the file "*SimplePhysicsList.cpp*", which defines the list of physical processes that are being simulated during the propagation of the particles. Finally, it also includes the file "*IceDensityModels.hh*", in which the density model of the ice is defined. The endpoint formalism is implemented in the file "*IceShelfSteppingAction.cpp*", which determines all the actions that need to be taken for each step of each particle during the simulation. For more information on how Geant4 works, please refer to the manual of Geant4.
 
-The ray tracing code consists of the files "*IceRayTracing.hh*" and "*IceRayTracing.cc*", developed by Uzair A. Latif. The files are included in this repository, but can also be found at https://github.com/uzairlatif90. Additionally, the ray tracing code also includes the files "*AirToIceRayTracing.hh*" and "*AirToIceRayTracing.cc*", also developed by Uzair A. Latif, which is used to perform ray tracing for particles propagating out of the ice, into the atmosphere (so-called albedo-particles). However, this feature is not up to date, and is therefore disabled by default.
+The ray tracing code consists of the files "*IceRayTracing.hh*" and "*IceRayTracing.cc*", developed by Uzair A. Latif. The files are included in this repository, but can also be found at https://github.com/uzairlatif90. Additionally, the ray tracing code also includes the files "*AirToIceRayTracing.hh*" and "*AirToIceRayTracing.cc*", also developed by Uzair A. Latif, which is used to perform ray tracing for particles propagating out of the ice, into the atmosphere (so-called albedo particles). However, this feature is not up to date and not well maintained, and is therefore disabled by default.
 
 Below you will find more information about the prerequisites needed to install the code, how to install the code, how to use the code, how to configure the code, which coordinate system is used by the code and how to run an example.
 
 # Prerequisites
-To be able to compile the Geant4 code, you will need to install several additional packages.
+To be able to compile the Geant4 code, you will need to install several additional packages:
 1. cmake, version 2.6 or higher
 2. Geant4 (the code has been extensively tested with version 10.05)
 3. ROOT (recommended: version 6.24 or higher, which should work with the CMakeLists.txt provided for compilation)
@@ -29,18 +29,18 @@ To be able to compile the ray tracing code, you will need to install GSL. At htt
 > * If you have Ubuntu or Linux you can skip all of the above and just get it from the repository by doing: "sudo apt install libgsl-dev"
 
 # Installation
-Installation of the project is done via the *INSTALL.sh* script. First, in the ```IceShelf``` directory, create a new directory called ```build```. Then, in Linux, simply run the command ```./INSTALL.sh 1``` from within the ```IceShelf``` directory. This script will use cmake to compile the code, and create the executable ```ice_shelf``` in the ```IceShelf/build/``` directory. In case you want to recompile the code after making some minor changes, simply use the command ```./INSTALL.sh 0``` instead for fast compilation.
+Installation of the project is done via the *INSTALL.sh* script. First, in the ```IceShelf``` directory, create a new directory called ```build```. Then, in Linux, simply run the command ```./INSTALL.sh 1``` from within the ```IceShelf``` directory. This script will use *cmake* to compile the code, and create the executable ```ice_shelf``` in the ```IceShelf/build/``` directory. In case you want to recompile the code after making some minor changes, simply use the command ```./INSTALL.sh 0``` instead for faster compilation.
 
-In case of errors during installation, it is advised to have a look at the *CMakeLists.txt* file, which essentially tells cmake how to compile the project, and adjust accordingly. Please refer to the documentation on cmake for more information.
+In case of errors during installation, it is advised to have a look at the *CMakeLists.txt* file, which essentially tells *cmake* how to compile the project, and adjust accordingly. Please refer to the documentation of *cmake* for more information.
 
 # Usage
-To run the program, change to the ```IceShelf``` directory and run the executable: 
+To run the program, move into the ```IceShelf``` directory and run the executable: 
 
 ```./build/ice_shelf <primary particles input file> <name for output file> <random number used for engine seed (index of seedtable will be this number modulo 215, so using 0 or 215 e.g. will result in same engine seed)> <zenith angle of primary particle in degrees> <azimuth angle of primary particle in degrees> <reas file from the CoREAS simulation> <list file from the CoREAS simulation> <atmosphere dat file used in the corresponding CoREAS sim>```
 
 As illustrated, the executable ```ice_shelf``` requires 8 arguments:
 #### 1. The primary particles input file:
-This file contains the particle output information from CORSIKA. It is a simple txt file, with each line representing a single particle that will be propagated through the ice. Each line contains, in this order and separated by a single white space:
+This file contains the particle output information from CORSIKA. It is a simple *txt* file, with each line representing a single particle that will be propagated through the ice. Each line contains, in this order and separated by a single white space:
 * The particle ID, following the CORSIKA convention
 * Momentum of the particle, component along the x-axis of the Geant4 coordinate system, in GeV
 * Momentum of the particle, component along the y-axis of the Geant4 coordinate system, in GeV
@@ -52,6 +52,15 @@ This file contains the particle output information from CORSIKA. It is a simple 
 * Thinning weight of the particle (1 in case no thinning was used during the CORSIKA simulation)
 
 Note that you will need to make a conversion from the CORSIKA coordinate system to the Geant4 coordinate system to create this input file, see the section "Coordinate systems".
+
+Note that if you use the *corsikaread* or *corsikaread_thin* Fortran scripts provided with the CORSIKA code, to convert the CORSIKA particle output from binary to human-readable format, you should increase the precision with which it converts the arrival time values. Change line 122
+```
+WRITE(8,‘(1P,E16.8,7E13.5)’) (PDATA(II+IL),II=0,7)
+```
+to the following:
+```
+WRITE(8,‘(1P,E16.8,7E16.8)’) (PDATA(II+IL),II=0,7)
+```
 
 #### 2. The name for the output file to be created (without file extension)
 The program will create 5 output files, all using this name. Assuming the name is "*example*", these would be:
