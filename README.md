@@ -77,7 +77,7 @@ This number will be used as seed to initiate the random number sequence of the M
 #### 4. The zenith angle of the primary particle from the CORSIKA simulation (in degrees)
 #### 5. The azimuth angle of the primary particle from the CORSIKA simulation (in degrees)
 #### 6. The reas file used during the CORSIKA (CoREAS) simulation
-This should be the file with the ".reas" extension used by CoREAS during the CORSIKA simulation. Please refer to the CoREAS manual for more information.
+This should be the file with the ".reas" extension used by CoREAS during the CORSIKA simulation. Please refer to the CoREAS manual for more information. Note that with the adjusted version of CoREAS, used by the FAERIE framework, you need to specify one additional parameter: ```IceBoundaryAltitude```. See the section "Example" for more information.
 #### 7. The list file used during the CORSIKA (CoREAS) simulation
 This should be the file with the ".list" extension used by CoREAS during the CORSIKA simulation, listing the observer positions used during the simulation for the radio calculations (CORSIKA coordinate system). Please refer to the CoREAS manual for more information. The Geant4 code will do the coordinate transformation from the CORSIKA system to the Geant4 system for the observer positions in the list file. Note that it does NOT do that for the particle input file.
 #### 8. The dat file describing the atmosphere used during the CORSIKA (CoREAS) simulation
@@ -122,8 +122,11 @@ The sudden appearance contribution of a charge entering the ice is defined as th
 Note that the sudden appearance contributions are also included in the "_dir.txt" and "_indir.txt" files. To get the total emission, simply add up the contributions from the "_dir.txt" and "_indir.txt" files, and do NOT add the contributions from the "_SA.txt" file as well. If you do, you're counting the "_SA.txt" contributions twice.
 
 # Configuration
+
+**TIP**: look into the standard output file from the ```ice_shelf`` executable, in case you would like to see what settings were used during the simulation.
+
 ## IceShelfGlobalVariables.hh
-Most of the configuration options can be adjusted via the "*IceShelfGlobalVariables.hh*" file in the ```include``` directory. Adjust the parameters as needed, and recombile the project using ```./INSTALL.sh 0``` as explained in the "Installation" section. The parameters that can be adjusted are:
+Most of the configuration options can be adjusted via the "*IceShelfGlobalVariables.hh*" file in the ```include``` directory. Adjust the parameters as needed, and recombile the project using ```./INSTALL.sh 0``` as explained in the "Installation" section. When adjusting a variable, carefully take into consideration the unit system of Geant4, explained under "REMARK ABOUT UNITS"! The parameters that can be adjusted are:
 ### GENERAL PARAMETERS
 ##### ```rayTracingOn```
 Should be true if you want to include ray tracing in the simulations. If you do, the index of refraction profile will be determined by the ray tracing code. For configuration of the refractive index profile, see below. If you do not include ray tracing, the index of refraction will be set to the value of nIce, given in "*IceShelfGlobalVariables.hh*".
@@ -210,9 +213,9 @@ Defines the kinetic energy limit applied to create the *ChargeTimeProfile_[INPUT
 ##### ```chargeEnergyNumberOfBins```
 Defines the number of bins on the Y-axis (kinetic energy) of the *ChargeTimeProfile_[INPUT_PARTICLE_TYPE]* histograms.
 ##### ```chargeEnergyUnderLim```
-Defines the underlimit of the first bin on the Y-axis (kinetic energy) of the *ChargeTimeProfile_[INPUT_PARTICLE_TYPE]* histograms. In ROOT, the first bin always has the index **1**. The bin with index **0** is the underflow bin, which in case of the Y-axis will hold the number of particles falling below ```depthEnergyUnderLim``` (i.e. the underlimit of the first bin) for the given depth.
+Defines the underlimit of the first bin on the Y-axis (kinetic energy) of the *ChargeTimeProfile_[INPUT_PARTICLE_TYPE]* histograms. In ROOT, the first bin always has the index **1**. The bin with index **0** is the underflow bin, which in case of the Y-axis will hold the number of particles falling below ```chargeEnergyUnderLim``` (i.e. the underlimit of the first bin) for the given depth.
 ##### ```chargeEnergyUpperLim```
-Defines the upperlimit of the last bin on the Y-axis (kinetic energy) of the *ChargeTimeProfile_[INPUT_PARTICLE_TYPE]* histograms. In ROOT, the last bin always has the index **N**, with N the number of bins. The bin with index **N + 1** is the overflow bin, which in case of the Y-axis will hold the number of particles falling above ```depthEnergyUpperLim``` (i.e. the upperlimit of the last bin) for the given depth.
+Defines the upperlimit of the last bin on the Y-axis (kinetic energy) of the *ChargeTimeProfile_[INPUT_PARTICLE_TYPE]* histograms. In ROOT, the last bin always has the index **N**, with N the number of bins. The bin with index **N + 1** is the overflow bin, which in case of the Y-axis will hold the number of particles falling above ```chargeEnergyUpperLim``` (i.e. the upperlimit of the last bin) for the given depth.
 ##### ```snapshotDepthsMassArea```
 Defines the depth values of the cascade front for which a *SnapshotNtuple* will be made during the simulation. More values means more snapshots, which will drive up the size of the ".root" file significantly!
 ##### ```numberOfSnapshotDepthsMassArea```
@@ -221,7 +224,7 @@ Defines the number of *SnapshotNtuples* that will be made. This is calculated au
 Defines the kinetic energy limit applied to create the *SnapshotNtuples*. Only particles with a kinetic energy above (>) the limit will be included in the tuples. The Geant4 simulation itself will NOT take these cuts into account. Instead, it used production energy cuts (see Geant4 manual).
 
 ### IceDensityModels.hh
-This file defines the density model used to construct the ice volume. The ice volume will consist of ```numberOfLayers``` (defined in "IceShelfGlobalVariables.hh") horizontal layers, each with a constant density defined by the density model given in "IceDensityModels.hh". The density models are implemented as inline functions that take a ```G4double depth``` value as argument and return a ```G4double rho_value```, representing the density at the given depth in internal Geant4 units (see "REMARK ABOUT UNITS"). When implementing a new model, carefully take into consideration the unit system of Geant4, explained under "REMARK ABOUT UNITS"!
+This file defines the density model used to construct the ice volume. The ice volume will consist of ```numberOfLayers``` (defined in "*IceShelfGlobalVariables.hh*") horizontal layers, each with a constant density defined by the density model given in "*IceDensityModels.hh*". The density models are implemented as inline functions that take a ```G4double depth``` value as argument and return a ```G4double rho_value```, representing the density at the given depth in internal Geant4 units (see "REMARK ABOUT UNITS"). When implementing a new model, carefully take into consideration the unit system of Geant4, explained under "REMARK ABOUT UNITS"!
 
 To select a density model, simply adjust the function ```rho(G4double depth)``` at the end of this file, using any of the models defined higher up in the file, and recompile the code using the command ```./INSTALL 0``` (see section "Installation"). The Geant4 code will use the ```rho(G4double depth)``` function during the construction of the ice volume.
 
@@ -229,13 +232,14 @@ To select a density model, simply adjust the function ```rho(G4double depth)``` 
 This file defines the processes that are being simulated by the Geant4 simulation toolkit during the particle simulation. Please refer to the Geant4 documentation for more information. After adjusting, recompile the code using the command ```./INSTALL 0``` (see section "Installation").
 
 ### Ray tracing
-To adjust parameters concerning ray tracing that are not covered by the "IceShelfGlobalVariables.hh" file, you will need to adjust the code elsewhere. I will highlight the two most probable changes you might want to make:
+To adjust parameters concerning ray tracing that are not covered by the "*IceShelfGlobalVariables.hh*" file, you will need to adjust the code elsewhere. I will highlight the two most probable changes you might want to make:
 #### 1. Changing the index of refraction profile parameters
 Currently the ray tracer assumes the index of refraction profile of the ice follows an exponential function, given by $n(z) = A + B \exp(-C|z|)$. The default values for the parameters A, B and C are
 * $A = 1.78$
 * $B = -0.43$
 * $C = 0.0132$
-as described in https://pos.sissa.it/301/1030 (model used by the Askaryan Radio Array at the South Pole). To change the values of A, B and C, you will need to adjust the file "IceShelfRunAction.cpp", in the constructor of the ```IceShelfRunAction``` class. You can recognize the constructor by the syntax
+
+as described in https://pos.sissa.it/301/1030 (model used by the Askaryan Radio Array at the South Pole). To change the values of A, B and C, you will need to adjust the file "*IceShelfRunAction.cpp*", in the constructor of the ```IceShelfRunAction``` class. You can recognize the constructor by the syntax
 
 ```
 IceShelfRunAction::IceShelfRunAction(G4String outputFileName, G4double* snapshotTimes,
@@ -251,7 +255,7 @@ IceShelfRunAction::IceShelfRunAction(G4String outputFileName, G4double* snapshot
 
 }
 ```
-It is essentially what looks like the very first function defined in the file. In this constructor, you will find a block of code that is commented out which you can use to change the values of A, B and C:
+It is essentially what looks like the very first function defined in the file. In this constructor, you will find a block of code that is commented out, which you can use to change the values of A, B and C:
 ```
     ...
 
@@ -272,7 +276,7 @@ It is essentially what looks like the very first function defined in the file. I
 Uncomment the last 6 lines in this block to change the values of A, B and C, and recompile the code using the command ```./INSTALL 0``` (see section "Installation"). The values given as example in this block, correspond to the values discussed in https://knowledge.uchicago.edu/record/4043?ln=en&v=pdf ("A Low Threshold Neutrino Search with the Askaryan Radio Array" - PhD thesis of Kaeli Hughes).
 
 #### 2. Changing the refractive index profile to a double exponential profile
-The ray tracer currently also supports a double exponential refractive index profile. To change from a single exponential profile to a double exponential profile, both of the form $n(z) = A + B \exp(-C|z|)$, the file "IceRayTracing.hh" needs to be adjusted. Look for the following block of code:
+The ray tracer currently also supports a double exponential refractive index profile. To change from a single exponential profile to a double exponential profile, both of the form $n(z) = A + B \exp(-C|z|)$, the file "*IceRayTracing.hh*" needs to be adjusted. Look for the following block of code:
 ```
   static const double A_ice_def=1.78;
   static const double B_ice_def=-0.43;
@@ -302,7 +306,7 @@ where you will need to comment out the first and fourth line in the code, and un
   static double B_ice=B_ice_def;
   static double C_ice=C_ice_def;
 ```
-The values given in this example correspond to the profile measured at Greenland, reported in https://arxiv.org/pdf/1805.12576. Of course they can be adjusted freely. The variable ```A_ice_def``` corresponds to the value of A used by both exponential profiles. The variable ```TransitionBoundary``` corresponds to the depth at which the index of refraction profiles changes from the first exponential profile to the second exponential profile. It should be > 0 (indicating a depth below the surface), and in units of meter. If ```TransitionBoundary``` is set to ```0```, a single exponential profile will be used, using the values of A, B and C as explained above. After adjusting, recompile the code using the command ```./INSTALL 0``` (see section "Installation").
+The values given in this example correspond to the profile measured at Greenland, reported in https://arxiv.org/pdf/1805.12576. The variable ```A_ice_def``` corresponds to the value of A used by both exponential profiles. The variable ```TransitionBoundary``` corresponds to the depth at which the index of refraction profiles changes from the first exponential profile to the second exponential profile. It should be > 0 (indicating a depth below the surface), and in units of meter. If ```TransitionBoundary``` is set to ```0```, a single exponential profile will be used, using the values of A, B and C as explained above. After adjusting, recompile the code using the command ```./INSTALL 0``` (see section "Installation").
 
 To adjust the B and C parameters of the exponential functions, open the file "IceRayTracing.cc" and look for the functions
 ```
@@ -347,13 +351,13 @@ In both cases, in the ```if(z<=IceRayTracing::TransitionBoundary){...}else{...}`
 ## REMARK ABOUT UNITS
 Geant4 uses "internal units", defined by a specific file of the Geant4 simulation toolkit. At the same time, it also defines all other possible units, with respect to these internal units. Therefore, to make sure you do not make any unit mistakes, follow these two core rules:
 1. Input: when reading in or defining a quantity, always **multiply** with the corresponding unit. If you do not multiply by the corresponding unit, the number given will be interpreted in Geant4 internal units, which can in principle change during any given Geant4 update! <br> Example: ```static const G4double c0 = 299792458.*m/s;```
-4. Output: when reading out a quantity, always **devide** with the corresponding unit you would like to have the quantity in. If you do not devide by the corresponding unit, the number you read out will be given in Geant4 internal units, which can in principle change during any given Geant4 update! <br> Example: ```cout << "The speed of light in vacuum is " << c0/(m/s) << " m/s" << endl;``` <br> Note that this is not only important for printing out values, but also for e.g. storing in histograms or tuples expecting certain units.
+4. Output: when reading out a quantity, always **devide** with the corresponding unit you would like to have the quantity in. If you do not devide by the corresponding unit, the number you read out will be given in Geant4 internal units, which can in principle change during any given Geant4 update! <br> Example: ```cout << "The speed of light in vacuum is " << c0/(m/s) << " m/s" << endl;``` <br> Note that this is not only important for printing out values, but also for e.g. storing values in histograms or tuples expecting certain units.
 
 # Coordinate systems
 ### Spatial coordinates
 The sketch below shows the relation between the CORSIKA/CoREAS coordinate system and the Geant4 coordinate system. When reading the CORSIKA particle output file and preparing the primary particle input file  for the Geant4 code, you will have to take into account the differences between the systems. To go from Corsika/CoREAS spatial coordinates to Geant4 spatial coordinates, use:<br>
 <img src="./images/corsika_to_geant4.png" width="300" /><br>
-with $x$<sub>G</sub>, $y$<sub>G</sub>, $z$<sub>G</sub> the coordinates in the Geant4 coordinate system, $x$<sub>C</sub>, $y$<sub>C</sub>, $z$<sub>C</sub> the coordinates in the CORSIKA coordinate system, $\phi$ the azimuth angle of the cosmic ray, and $d$ **half** of the depth of the simulated ice volume (defined by ```shelfSizeY``` in "IceShelfGlobalVariables.hh", which is 20 m by default, which means that the default value of $d$ is 10 m), as shown in the sketch. These formulas also hold for momentum and electric field components if omitting the spatial translation ("+ d") for the y-component.
+with $x$<sub>G</sub>, $y$<sub>G</sub>, $z$<sub>G</sub> the coordinates in the Geant4 coordinate system, $x$<sub>C</sub>, $y$<sub>C</sub>, $z$<sub>C</sub> the coordinates in the CORSIKA coordinate system, $\phi$ the azimuth angle of the cosmic ray, and $d$ **half** of the depth of the simulated ice volume (defined by ```shelfSizeY``` in "*IceShelfGlobalVariables.hh*", which is 20 m by default, which means that the default value of $d$ is 10 m), as shown in the sketch. These formulas also hold for momentum and electric field components if the spatial translation ("+ d") for the y-component is omitted.
 
 When interpreting the data in the ".txt" output files, you will have to move back to the CORSIKA/CoREAS system, if you want to compare or combine it with the CoREAS data of the in-air radio emission. To go from Geant4 spatial coordinates to Corsika/CoREAS spatial coordinates, use:<br>
 <img src="./images/geant4_to_corsika.png" width="300" /><br>
@@ -361,24 +365,24 @@ again omitting the spatial translation for the z-component in case of momentum a
 
 <img src="./images/axis_system.png" width="700" /><br>
 
-Note: the reason that the x-axis of the Geant4 coordinate system is rotated over the azimuth angle w.r.t the x-axis of the CORSIKA coordinate system, is to make sure that the coordinate transformation from the Geant4 coordinate system to the tilted Geant4 coordinate system where the y-axis is aligned with the shower axis is done correctly, for arbitrary values of the azimuth angle. This is used e.g. during the construction of the EnergyDensityProfile_[INPUT_PARTICLE_TYPE] and RadialEnergyProfile_[INPUT_PARTICLE_TYPE] histograms.
+Note: the reason that the x-axis of the Geant4 coordinate system is rotated over the azimuth angle w.r.t the x-axis of the CORSIKA coordinate system, is to make sure that the coordinate transformation from the Geant4 coordinate system to the tilted Geant4 coordinate system where the y-axis is aligned with the shower axis is done correctly, for arbitrary values of the azimuth angle. This is used e.g. during the construction of the *EnergyDensityProfile_[INPUT_PARTICLE_TYPE]* and *RadialEnergyProfile_[INPUT_PARTICLE_TYPE]* histograms.
 
 ### Time
-The particle output from a CORSIKA + CoREAS simulation will give time relative to the entrance of the cosmic ray into the atmosphere (due to the "CHERENKOV" option automatically enabled by CoREAS). In other words, for the time values given in the particle output file, t = 0 refers to the moment the cosmic ray entered the atmosphere.
+The **particle output** from a CORSIKA + CoREAS simulation will give time relative to the entrance of the cosmic ray into the atmosphere (due to the "CHERENKOV" option automatically enabled by CoREAS). In other words, for the time values given in the particle output file, t = 0 refers to the moment the cosmic ray entered the atmosphere.
 
-The electric field traces from the CoREAS simulation however will give time relative to the moment the cosmic ray that entered the atmosphere hits the observer altitude, i.e. the ice surface, in the non-existing scenario where it would not have interacted with the atmosphere at all. In other words, for the electric field traces from the CoREAS simulation, t = 0 refers to this imaginary moment that the cosmic ray would have hit the observer altitude plane. This is illustrated in the sketch below.
+The **electric field traces** from the CoREAS simulation however will give time relative to the moment the cosmic ray that entered the atmosphere hits the observer altitude, i.e. the ice surface, in the non-existing scenario where it would not have interacted with the atmosphere at all. In other words, for the electric field traces from the CoREAS simulation, t = 0 refers to this imaginary moment that the cosmic ray would have hit the observer altitude plane. This is illustrated in the sketch below.
 
-The Geant4 code presented in this repository uses the t = 0 time reference from the primary particles input file that is given to the executable as the very first argument. It is therefore recommended that during preparation of this input file, the time values of the particle output file from the CORSIKA simulation are shifted to match the t = 0 time reference of CoREAS, so the in-air radio emission and the emission created during the propagating through the ice use the same definition for t = 0.
+The **Geant4 code** presented in this repository uses the t = 0 time reference from the primary particles input file that is given to the executable as the very first argument. It is therefore recommended that during preparation of this input file, the time values of the particle output file from the CORSIKA simulation are shifted to match the t = 0 time reference of CoREAS, so that the in-air radio emission and the emission created during the propagating through the ice use the same definition for t = 0.
 
 To do so, use:<br>
 <img src="./images/tcorsika_to_tcoreas.png" width="300" />,<br>
-with $t$<sub>CoREAS</sub> the time in the CoREAS system, $t$<sub>CORSIKA</sub> the time in the CORSIKA system, $h$ the vertical height difference between the point at which the cosmic ray entered the atmosphere w.r.t the observation altitude, $c_0$ the speed of light in vacuum and $\theta$ the zenith angle of the cosmic ray, as shown in the sketch. All the information required to make the time transformation should be available in the standard output file from the CORSIKA simulation (and possibly also the particle output file). <br>
+with $t$<sub>CoREAS</sub> the time in the CoREAS system, $t$<sub>CORSIKA</sub> the time in the CORSIKA system, $h$ the vertical height difference between the point at which the cosmic ray entered the atmosphere and the observation altitude, $c_0$ the speed of light in vacuum and $\theta$ the zenith angle of the cosmic ray, as shown in the sketch. All the information required to make the time transformation should be available in the standard output file from the CORSIKA simulation (and possibly also the particle output file). <br>
 
 <img src="./images/time_references.png" width="600" /><br>
 
 # Example
 
-In the directory ```example``` you can find all the files you need to run the ```ice_shelf``` executable, simulating a single downgoing gamma, entering hitting the ice surface in the center of the simulated ice volume, with an energy of 10 GeV and a thinning weight of 1.
+In the directory ```example``` you can find all the files you need to run the ```ice_shelf``` executable, simulating a single vertically downgoing gamma, entering the simulated ice volume through the center of the ice surface, with an energy of 10 GeV and a thinning weight of 1.
 
 In the SIM000001.reas, the altitude of the ice surface is set at 2.835 km (see ```CoreCoordinateVertical``` and ```IceBoundaryAltitude```). In the SIM000001.list, three observer positions are defined along the West axis, spaced 10 m apart from each other, each 100 m below the surface (z-coordinate of 273500 cm above sea level).
 
