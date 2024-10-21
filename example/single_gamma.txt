@@ -1,0 +1,7 @@
+#################################################################
+# Units are: GeV cm ns
+# Number of particles in this file (not weighted): 12602882
+# Format: part_id px(GeV) py(GeV) pz(GeV) x(cm) y(cm) z(cm) t(ns) weight
+# NOTE: using the geant4 axis system here
+#################################################################
+1 0.0 -10.0 0.0 0.0 1000.0 0.0 0.0 1.0
