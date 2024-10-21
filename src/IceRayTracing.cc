@@ -3162,14 +3162,14 @@ void IceRayTracing::GetFocusingFactor(double zT, double xR, double zR, double fo
 
   if(RecieveAngle[0]!=-1000 && RecieveAngleB[0]!=-1000){
     focusing[0]= sqrt( ((distance[0] / (sin(recAng[0]) * fabs( (recPos[2] - recPos[0]) / (lauAng[2] - lauAng[0]) ) ) ) * (nTx / nRx) ));
-    // focusparts[0]=sqrt(distance[0] / sin(lauAng[0]));
+    // focusparts[0]=sqrt(distance[0] / sin(recAng[0]));
     // focusparts[1]=sqrt(1.0/fabs( (recPos[2] - recPos[0]) / (lauAng[2] - lauAng[0]) ));
     // focusparts[2]=sqrt((nTx / nRx));
   }
   
   if(RecieveAngle[1]!=-1000 && RecieveAngleB[1]!=-1000){
     focusing[1]= sqrt( ((distance[1] /( sin(recAng[1]) * fabs( (recPos[3] - recPos[1]) / (lauAng[3] - lauAng[1]) ) ) ) * (nTx / nRx)));
-    // focusparts[3]=sqrt(distance[1] / sin(lauAng[1]));
+    // focusparts[3]=sqrt(distance[1] / sin(recAng[1]));
     // focusparts[4]=sqrt(1.0/fabs( (recPos[3] - recPos[1]) / (lauAng[3] - lauAng[1]) ));
     // focusparts[5]=sqrt((nTx / nRx));
   }
