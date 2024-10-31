@@ -134,7 +134,6 @@ static const G4double chargeEnergyUpperLim = 1*GeV;
 // The cascade front depth values for which a snapshot will be made during the simulation
 // in units mass/area,
 // together with a kinetic energy cut above which the particles need to be to contribute.
-//static const G4double snapshotDepthsMassArea[0] = {};
 static const G4double snapshotDepthsMassArea[1] = {350.*g/cm2};
 //static const G4double snapshotDepthsMassArea[18] 
 //                    = {50.*g/cm2, 100.*g/cm2, 150.*g/cm2, 200.*g/cm2, 250.*g/cm2, 300.*g/cm2, 350.*g/cm2, 400.*g/cm2, 450.*g/cm2, 500.*g/cm2, 550.*g/cm2, 600.*g/cm2, 650.*g/cm2, 700.*g/cm2, 750.*g/cm2, 800.*g/cm2, 850.*g/cm2, 900.*g/cm2};
