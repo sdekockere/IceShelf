@@ -15,7 +15,7 @@ Below you will find more information about the prerequisites needed to install t
 To be able to compile the Geant4 code, you will need to install several additional packages:
 1. cmake, version 2.6 or higher
 2. Geant4 (the code has been extensively tested with version 10.05)
-3. ROOT (recommended: version 6.24 or higher, which should work with the CMakeLists.txt provided for compilation)
+3. ROOT (the same version as used by Geant4, version 5.34.18 is confirmed to work)
 
 Please refer to the documentation of the packages for installation.
 
