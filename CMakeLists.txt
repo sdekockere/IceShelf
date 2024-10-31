@@ -19,12 +19,8 @@ endif()
 #----------------------------------------------------------------------------
 # Find ROOT
 #list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-#list(APPEND CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake/)
+list(APPEND CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake/)
 find_package(ROOT REQUIRED)
-
-#----------------------------------------------------------------------------
-# Find GSL
-find_package(GSL REQUIRED)
 
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
@@ -32,8 +28,8 @@ find_package(GSL REQUIRED)
 # Setup include directory for this project
 #
 include(${Geant4_USE_FILE})
-include(${ROOT_USE_FILE})
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+#include_directories(SYSTEM ${ROOT_INCLUDE_DIR}) # Use this one if you want to disable warnings for root directories
+include_directories(${ROOT_INCLUDE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 #----------------------------------------------------------------------------
@@ -49,7 +45,7 @@ set(headers ${PROJECT_SOURCE_DIR}/include/AirToIceRayTracing.h ${PROJECT_SOURCE_
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(ice_shelf ice_shelf.cpp ${sources} ${headers})
-target_link_libraries(ice_shelf ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} GSL::gsl GSL::gslcblas)
+target_link_libraries(ice_shelf ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} gsl)
 
 #----------------------------------------------------------------------------
 # For internal Geant4 use - but has no effect if you build this
