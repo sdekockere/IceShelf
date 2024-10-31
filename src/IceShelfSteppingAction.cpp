@@ -888,7 +888,7 @@ G4int IceShelfSteppingAction::GetEPValsRayTracing(unsigned int k,
     // Calculating the observation time
     obsTime = emitterTime + travelTime;
 
-    // Calculating the launch direction of the ray
+    // Calculating the launch and receive direction of the ray
     G4ThreeVector yDir = G4ThreeVector(0., 1., 0.); // Unit vector in y-dir (internal units)
     G4double emitterObsVectMag = emitterObsVect.mag();
     G4ThreeVector rotAxis = yDir.cross(emitterObsVect/emitterObsVectMag); // Rotation axis to get
@@ -896,21 +896,52 @@ G4int IceShelfSteppingAction::GetEPValsRayTracing(unsigned int k,
     G4double rotAxisMag = rotAxis.mag();
     // Sanity check, if emitterObsVect and yDir are near parallel, the direction of the
     // rotation axis is maybe dominated by numerical noise
+    // If so, we set the directions manually
     if(rotAxisMag < 1e-12){
+
         G4cerr << "WARNING: encoutered rotation axis with a magnitude of "
                 << rotAxisMag
                 << " during calculation of launch and receive direction of a ray, " 
                 << " which means emitter and observer are on a near-vertical line."
                 << " Rotation axis is normalized, and its direction might"
                 << " be dominated by numerical noise." << G4endl;
-        G4cerr << "launchAngle and receiveAngle used during rotation with this axis were " 
-                << launchAngle/degree << " degr and " << receiveAngle/degree << " degr." << G4endl;
-    }
-    rotAxis = rotAxis/rotAxisMag;
-    launchDir = RotateVectorCosPi(yDir, rotAxis, cos(launchAngle/radian));
+        //G4cerr << "launchAngle and receiveAngle used during rotation with this axis were " 
+        //        << launchAngle/degree << " degr and " << receiveAngle/degree << " degr." << G4endl;
+        G4cerr << "Setting directions manually (vert. up if angle < 2 dgr, vert. down if"
+                << " angle > 178 dgr)..." << G4endl;
+        G4cerr << "launchAngle is " << launchAngle/degree << " degr, receiveAngle is "
+                << receiveAngle/degree << " degr" << G4endl;
 
-    // Calculating the receive direction of the ray
-    receiveDir = RotateVectorCosPi(yDir, rotAxis, cos(receiveAngle/radian));
+        if(launchAngle/degree < 2.){
+            launchDir = yDir;
+        } else if(launchAngle/degree > 178.){
+            launchDir = -1.*yDir;
+        } else {
+            G4cerr << "ERROR: launchAngle is " << launchAngle/degree << " degr, which does not"
+            << " satisfy any of the two conditions given above. Not sure why rotation axis"
+            << " has a magnitude close to 0. Aborting..." << G4endl;
+            exit(EXIT_FAILURE);
+        }
+
+        if(receiveAngle/degree < 2.){
+            receiveDir = yDir;
+        } else if(receiveAngle/degree > 178.){
+            receiveDir = -1.*yDir;
+        } else {
+            G4cerr << "ERROR: receiveAngle is " << receiveAngle/degree << " degr, which does not"
+            << " satisfy any of the two conditions given above. Not sure why rotation axis"
+            << " has a magnitude close to 0. Aborting..." << G4endl;
+            exit(EXIT_FAILURE);
+        }
+
+        G4cerr << "launchDir has been set to " << launchDir 
+               << ", receiveDir has been set to " << receiveDir << G4endl;
+
+    } else {
+        rotAxis = rotAxis/rotAxisMag;
+        launchDir = RotateVectorCosPi(yDir, rotAxis, cos(launchAngle/radian));
+        receiveDir = RotateVectorCosPi(yDir, rotAxis, cos(receiveAngle/radian));
+    }
 
     // Calculating the doppler term (1 - n*beta . rhat)
     // with n the index of refraction at the emission point,
@@ -1195,94 +1226,167 @@ G4int IceShelfSteppingAction::GetEfieldEP(unsigned int k, G4ThreeVector observer
 
         if(fabs(startDoppler) < approxThreshold || fabs(endDoppler) < approxThreshold){
 
-            rotAxis = yDir.cross(interLaunchDir);
-            G4double rotAxisMag = rotAxis.mag();
-            rotAxis = rotAxis/rotAxisMag;
-            
             cosVal = interLaunchDir.dot(interReceiveDir);
             if(cosVal > 1.){// Can happen due to numerical issues
                 cosVal = 1.;
             }
-            // Sanity check, cos(theta_launch) < cos(theta_receive) shouldn't happen,
-            // but maybe it does for double exp profile
-            // If it does, the sign of the rotation axis should be inverted
-            if(yDir.dot(interLaunchDir) < yDir.dot(interReceiveDir)){
-                //G4cerr << "WARNING: encountered launch angle larger than receive angle" << G4endl;
-                //G4cerr << "cos(theta_launch) is " << yDir.dot(interLaunchDir)
-                //       << " and cos(theta_receive) is "
-                //       << yDir.dot(interReceiveDir) << G4endl;
-                rotAxis = -1.*rotAxis; // Changing the direction of rotation
-            }
+
+            rotAxis = yDir.cross(interLaunchDir);
+            G4double rotAxisMag = rotAxis.mag();
+
             // Sanity check, if rotAxisMag was very small the direction of rotation might be
             // dominated by numerical noise...
+            // In this case, launch dir and normally also receive dir should be close to vertical
             if(rotAxisMag < 1e-12){
+
                 G4cerr << "WARNING: encoutered rotation axis with a magnitude of " << rotAxisMag
-                        << " during rotation of electric field, which means launch direction is"
+                        << " during rotation of electric field with interPoint,"
+                        << " which means launch direction is"
                         << " near vertical. Rotation axis is normalized, and its direction might"
                         << " be dominated by numerical noise." << G4endl;
-                G4cerr << "cos(theta) during rotation with this axis was " << cosVal << G4endl;
+                //G4cerr << "cos(theta) during rotation with this axis was " << cosVal << G4endl;
+                G4cerr << "Doing rotation of electric fields manually: no rotation if "
+                << "launchDir.dot(receiveDir) > .998, sign flip of field if < -0.998" << G4endl;
+
+                if(cosVal < -0.998){
+                    G4cerr << "cosVal is " << cosVal << ", so flipping the signs" << G4endl;
+                    startE = -1.*startE;
+                    endE = -1.*endE;
+                } else if(cosVal > 0.998){
+                    G4cerr << "cosVal is " << cosVal << ", so no rotations" << G4endl;
+                } else {
+                    G4cerr << "ERROR: cosVal is " << cosVal << ", which does not fall "
+                    << "under any of the two conditions given above. Not sure why the magnitude"
+                    << " of the rotation axis is so small. Aborting..." << G4endl;
+                    exit(EXIT_FAILURE);
+                }
+
+            } else {
+
+                rotAxis = rotAxis/rotAxisMag;
+                // Sanity check, cos(theta_launch) < cos(theta_receive) shouldn't happen,
+                // but maybe it does for double exp profile
+                // If it does, the sign of the rotation axis should be inverted
+                if(yDir.dot(interLaunchDir) < yDir.dot(interReceiveDir)){
+                    //G4cerr << "WARNING: encountered launch angle larger than receive angle"
+                    //<< G4endl;
+                    //G4cerr << "cos(theta_launch) is " << yDir.dot(interLaunchDir)
+                    //       << " and cos(theta_receive) is "
+                    //       << yDir.dot(interReceiveDir) << G4endl;
+                    rotAxis = -1.*rotAxis; // Changing the direction of rotation
+                }
+                startE = RotateVectorCosPi(startE, rotAxis, cosVal);
+                endE = RotateVectorCosPi(endE, rotAxis, cosVal);
+
             }
-            startE = RotateVectorCosPi(startE, rotAxis, cosVal);
-            endE = RotateVectorCosPi(endE, rotAxis, cosVal);
 
         } else {
 
-            rotAxis = yDir.cross(startLaunchDir);
-            G4double rotAxisMag = rotAxis.mag();
-            rotAxis = rotAxis/rotAxisMag;
+            // START POINT
 
             cosVal = startLaunchDir.dot(startReceiveDir);
             if(cosVal > 1.){// Can happen due to numerical issues
                 cosVal = 1.;
             }
-            // Sanity check, cos(theta_launch) < cos(theta_receive) shouldn't happen,
-            // but maybe it does for double exp profile
-            // If it does, the sign of the rotation axis should be inverted
-            if(yDir.dot(startLaunchDir) < yDir.dot(startReceiveDir)){
-                //G4cerr << "WARNING: encountered launch angle larger than receive angle" << G4endl;
-                //G4cerr << "cos(theta_launch) is " << yDir.dot(startLaunchDir)
-                //       << " and cos(theta_receive) is "
-                //       << yDir.dot(startReceiveDir) << G4endl;
-                rotAxis = -1.*rotAxis; // Changing the direction of rotation
-            }
+
+            rotAxis = yDir.cross(startLaunchDir);
+            G4double rotAxisMag = rotAxis.mag();
             // Sanity check, if rotAxisMag was very small the direction of rotation might be
             // dominated by numerical noise...
+            // In this case, launch dir and normally also receive dir should be close to vertical
             if(rotAxisMag < 1e-12){
+
                 G4cerr << "WARNING: encoutered rotation axis with a magnitude of " << rotAxisMag
-                        << " during rotation of electric field, which means launch direction is"
+                        << " during rotation of electric field with startPoint,"
+                        << " which means launch direction is"
                         << " near vertical. Rotation axis is normalized, and its direction might"
                         << " be dominated by numerical noise." << G4endl;
-                G4cerr << "cos(theta) during rotation with this axis was " << cosVal << G4endl;
-            }
-            startE = RotateVectorCosPi(startE, rotAxis, cosVal);
+                //G4cerr << "cos(theta) during rotation with this axis was " << cosVal << G4endl;
+                G4cerr << "Doing rotation of electric fields manually: no rotation if "
+                << "launchDir.dot(receiveDir) > .998, sign flip of field if < -0.998" << G4endl;
 
-            rotAxis = yDir.cross(endLaunchDir);
-            rotAxisMag = rotAxis.mag();
-            rotAxis = rotAxis/rotAxisMag;
+                if(cosVal < -0.998){
+                    G4cerr << "cosVal is " << cosVal << ", so flipping the sign" << G4endl;
+                    startE = -1.*startE;
+                } else if(cosVal > 0.998){
+                    G4cerr << "cosVal is " << cosVal << ", so no rotation" << G4endl;
+                } else {
+                    G4cerr << "ERROR: cosVal is " << cosVal << ", which does not fall "
+                    << "under any of the two conditions given above. Not sure why the magnitude"
+                    << " of the rotation axis is so small. Aborting..." << G4endl;
+                    exit(EXIT_FAILURE);
+                }
+
+            } else {
+
+                rotAxis = rotAxis/rotAxisMag;
+                // Sanity check, cos(theta_launch) < cos(theta_receive) shouldn't happen,
+                // but maybe it does for double exp profile
+                // If it does, the sign of the rotation axis should be inverted
+                if(yDir.dot(startLaunchDir) < yDir.dot(startReceiveDir)){
+                    //G4cerr << "WARNING: encountered launch angle larger than receive angle"
+                    //<< G4endl;
+                    //G4cerr << "cos(theta_launch) is " << yDir.dot(startLaunchDir)
+                    //       << " and cos(theta_receive) is "
+                    //       << yDir.dot(startReceiveDir) << G4endl;
+                    rotAxis = -1.*rotAxis; // Changing the direction of rotation
+                }
+                startE = RotateVectorCosPi(startE, rotAxis, cosVal);
+
+            }
+
+            // END POINT
 
             cosVal = endLaunchDir.dot(endReceiveDir);
             if(cosVal > 1.){// Can happen due to numerical issues
                 cosVal = 1.;
             }
-            // Sanity check, cos(theta_launch) < cos(theta_receive) shouldn't happen, but maybe it does for double exp profile
-            // If it does, the sign of the rotation axis should be inverted
-            if(yDir.dot(endLaunchDir) < yDir.dot(endReceiveDir)){
-                //G4cerr << "WARNING: encountered launch angle larger than receive angle" << G4endl;
-                //G4cerr << "cos(theta_launch) is " << yDir.dot(endLaunchDir)
-                //       << " and cos(theta_receive) is "
-                //       << yDir.dot(endReceiveDir) << G4endl;
-                rotAxis = -1.*rotAxis; // Changing the direction of rotation
-            }
+
+            rotAxis = yDir.cross(endLaunchDir);
+            rotAxisMag = rotAxis.mag();
             // Sanity check, if rotAxisMag was very small the direction of rotation might be
             // dominated by numerical noise...
+            // In this case, launch dir and normally also receive dir should be close to vertical
             if(rotAxisMag < 1e-12){
+
                 G4cerr << "WARNING: encoutered rotation axis with a magnitude of " << rotAxisMag
-                        << " during rotation of electric field, which means launch direction is"
+                        << " during rotation of electric field with endPoint,"
+                        << " which means launch direction is"
                         << " near vertical. Rotation axis is normalized, and its direction might"
                         << " be dominated by numerical noise." << G4endl;
-                G4cerr << "cos(theta) during rotation with this axis was " << cosVal << G4endl;
+                //G4cerr << "cos(theta) during rotation with this axis was " << cosVal << G4endl;
+                G4cerr << "Doing rotation of electric fields manually: no rotation if "
+                << "launchDir.dot(receiveDir) > .998, sign flip of field if < -0.998" << G4endl;
+
+                if(cosVal < -0.998){
+                    G4cerr << "cosVal is " << cosVal << ", so flipping the sign" << G4endl;
+                    endE = -1.*endE;
+                } else if(cosVal > 0.998){
+                    G4cerr << "cosVal is " << cosVal << ", so no rotation" << G4endl;
+                } else {
+                    G4cerr << "ERROR: cosVal is " << cosVal << ", which does not fall "
+                    << "under any of the two conditions given above. Not sure why the magnitude"
+                    << " of the rotation axis is so small. Aborting..." << G4endl;
+                    exit(EXIT_FAILURE);
+                }
+
+            } else {
+
+                rotAxis = rotAxis/rotAxisMag;
+                // Sanity check, cos(theta_launch) < cos(theta_receive) shouldn't happen,
+                // but maybe it does for double exp profile
+                // If it does, the sign of the rotation axis should be inverted
+                if(yDir.dot(endLaunchDir) < yDir.dot(endReceiveDir)){
+                    //G4cerr << "WARNING: encountered launch angle larger than receive angle"
+                    //<< G4endl;
+                    //G4cerr << "cos(theta_launch) is " << yDir.dot(endLaunchDir)
+                    //       << " and cos(theta_receive) is "
+                    //       << yDir.dot(endReceiveDir) << G4endl;
+                    rotAxis = -1.*rotAxis; // Changing the direction of rotation
+                }
+                endE = RotateVectorCosPi(endE, rotAxis, cosVal);
+
             }
-            endE = RotateVectorCosPi(endE, rotAxis, cosVal);
 
         } 
         
