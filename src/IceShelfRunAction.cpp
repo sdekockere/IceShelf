@@ -408,12 +408,15 @@ void IceShelfRunAction::BeginOfRunAction(const G4Run*)
 
 void IceShelfRunAction::EndOfRunAction(const G4Run*)
 {
+
     // Save the root file
+    G4cout << "Saving the root file..." << G4endl;
     auto analysisManager = G4AnalysisManager::Instance();
     analysisManager->Write();
     analysisManager->CloseFile();
 
     // Save the antenna traces: writing it to a txt file
+    G4cout << "Saving the antenna traces..." << G4endl;
     if(includeDirectRays){
         SaveAntennaTraces(fAntennaTracesDir, fOutputFileName + "_dir.txt");
     }
@@ -425,6 +428,7 @@ void IceShelfRunAction::EndOfRunAction(const G4Run*)
     }
 
     // Save the extra 2D histos
+    G4cout << "Saving the extra root file..." << G4endl;
     G4String fnameExtra2DHistos = fOutputFileName + "_extra_2D_histos.root";
     TFile* fExtra2DHistos = new TFile(fnameExtra2DHistos, "RECREATE");
     fExtra2DHistos->cd();
