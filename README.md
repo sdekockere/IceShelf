@@ -1,5 +1,19 @@
 # IceShelf
-This repository holds the code for the in-ice simulation part of the FAERIE framework (https://arxiv.org/abs/2403.15358). It propagates the particle output from a CORSIKA simulation through ice using the Geant4 simulation toolkit, and combines the endpoint formalism with ray tracing for the corresponding radio calculations.
+This repository holds the code for the in-ice simulation part of the FAERIE framework, reported in
+* **Simulation of in-ice cosmic ray air shower induced particle cascades**<br/>
+  *De Kockere, S., de Vries, K. D., van Eijndhoven, N. and Latif, U. A. 2022, Phys. Rev. D 106, 043023* <br/>
+  [journal](https://doi.org/10.1103/PhysRevD.106.043023) - [arXiv](https://arxiv.org/abs/2202.09211)
+* **Simulation of radio signals from cosmic-ray cascades in air and ice as observed by in-ice Askaryan radio detectors** <br/>
+  *De Kockere, S., Van den Broeck, D., Latif, U. A. et al. 2024, Phys. Rev. D 110, 023010* <br/>
+  [journal](https://doi.org/10.1103/PhysRevD.110.023010) - [arXiv](https://arxiv.org/abs/2403.15358)
+
+It propagates the particle output from a CORSIKA simulation through ice using the Geant4 simulation toolkit, and combines the endpoint formalism with ray tracing for the corresponding radio calculations. The implementation of the endpoint formalism was originally developed by Anna Zilles in context of the SLAC-T510 experiment, so please also cite the following publications when building further on it:
+* **Accelerator measurements of magnetically induced radio emission from particle cascades with applications to cosmic-ray air showers** <br/>
+  *Belov, K., Mulrey, K., Romero-Wolf, A. et al. 2016, PRL 116, 141103* <br/>
+  [journal](https://doi.org/10.1103/PhysRevLett.116.141103) - [arXiv](http://arxiv.org/abs/1507.07296)
+* **SLAC T-510 experiment for radio emission from particle showers: Detailed simulation study and interpretation** <br/>
+  *Bechtol, K., Belov, K., Borch, K., et al. 2022, Phys. Rev. D 105, 063025* <br/>
+  [journal](https://doi.org/10.1103/PhysRevD.105.063025) -  [arXiv](https://arxiv.org/abs/2111.04334)
 
 The code exists of two main components:
 1. The Geant4 code
