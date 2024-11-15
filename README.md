@@ -247,7 +247,10 @@ This file defines the processes that are being simulated by the Geant4 simulatio
 
 ### Ray tracing
 To adjust parameters concerning ray tracing that are not covered by the "*IceShelfGlobalVariables.hh*" file, you will need to adjust the code elsewhere. I will highlight the two most probable changes you might want to make:
-#### 1. Changing the index of refraction profile parameters
+#### 1. Changing the refractive index profile parameters
+
+IMPORTANT NOTE: changing the *refractive index profile* of the ice will NOT change the *density profile* of the ice. This is modelled separately in "*IceDensityModels.hh*", as explained above.
+
 Currently the ray tracer assumes the index of refraction profile of the ice follows an exponential function, given by $n(z) = A + B \exp(-C|z|)$. The default values for the parameters A, B and C are
 * $A = 1.78$
 * $B = -0.43$
@@ -290,6 +293,9 @@ It is essentially what looks like the very first function defined in the file. I
 Uncomment the last 6 lines in this block to change the values of A, B and C, and recompile the code using the command ```./INSTALL 0``` (see section "Installation"). The values given as example in this block, correspond to the values discussed in https://knowledge.uchicago.edu/record/4043?ln=en&v=pdf ("A Low Threshold Neutrino Search with the Askaryan Radio Array" - PhD thesis of Kaeli Hughes).
 
 #### 2. Changing the refractive index profile to a double exponential profile
+
+IMPORTANT NOTE: changing the *refractive index profile* of the ice will NOT change the *density profile* of the ice. This is modelled separately in "*IceDensityModels.hh*", as explained above.
+
 The ray tracer currently also supports a double exponential refractive index profile. To change from a single exponential profile to a double exponential profile, both of the form $n(z) = A + B \exp(-C|z|)$, the file "*IceRayTracing.hh*" needs to be adjusted. Look for the following block of code:
 ```
   static const double A_ice_def=1.78;
