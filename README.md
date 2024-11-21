@@ -6,6 +6,9 @@ This repository holds the code for the in-ice simulation part of the FAERIE fram
 * **Simulation of radio signals from cosmic-ray cascades in air and ice as observed by in-ice Askaryan radio detectors** <br/>
   *De Kockere, S., Van den Broeck, D., Latif, U. A. et al. 2024, Phys. Rev. D 110, 023010* <br/>
   [journal](https://doi.org/10.1103/PhysRevD.110.023010) - [arXiv](https://arxiv.org/abs/2403.15358)
+* **Observation of neutrino-induced cascades via radio detection techniques: Modeling the cosmic-ray background signal** <br/>
+  *De Kockere, S., 2024, PhD thesis, Vrije Universiteit Brussel (VUB)* <br/>
+  [link](https://researchportal.vub.be/en/publications/observation-of-neutrino-induced-cascades-via-radio-detection-tech)
 
 It propagates the particle output from a CORSIKA simulation through ice using the Geant4 simulation toolkit, and combines the endpoint formalism with ray tracing for the corresponding radio calculations. The implementation of the endpoint formalism was originally developed by Anna Zilles in context of the SLAC-T510 experiment, so please also cite the following publications when building further on it:
 * **Accelerator measurements of magnetically induced radio emission from particle cascades with applications to cosmic-ray air showers** <br/>
